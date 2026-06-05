@@ -1,0 +1,21 @@
+# Dependency directories
+node_modules/
+
+# Local environment variables
+.env
+
+# SQLite local databases
+*.db
+gymnastics.db
+
+# JSON database fallback file
+gymnastics_db.json
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
