@@ -714,8 +714,8 @@ function detectionLoop() {
   let currentScore = 100;
   let metricsHTML = "";
 
-  if (result.poseLandmarks && result.poseLandmarks.length > 0) {
-    const lm = result.poseLandmarks[0];
+  if (result.landmarks && result.landmarks.length > 0) {
+    const lm = result.landmarks[0];
     
     if (lm.length >= 29) {
       cachedState.landmarks = lm;
