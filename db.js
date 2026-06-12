@@ -402,6 +402,94 @@ const db = {
         resolve(summary);
       }
     });
+  },
+
+  getAdminSummary: () => {
+    return new Promise((resolve, reject) => {
+      if (dbEngine === 'sqlite' && sqliteDb) {
+        const summary = {
+          total_users: 0,
+          total_workouts: 0,
+          total_reps: 0,
+          avg_score: 0,
+          users: []
+        };
+        
+        sqliteDb.get('SELECT COUNT(*) as count FROM users', [], (err, uRow) => {
+          if (err) return reject(err);
+          summary.total_users = uRow.count || 0;
+          
+          sqliteDb.get('SELECT COUNT(*) as count, SUM(reps) as reps, AVG(avg_score) as score FROM workouts', [], (err, wRow) => {
+            if (err) return reject(err);
+            summary.total_workouts = wRow.count || 0;
+            summary.total_reps = wRow.reps || 0;
+            summary.avg_score = parseFloat((wRow.score || 0).toFixed(1));
+            
+            const usersQuery = `
+              SELECT 
+                u.id, 
+                u.username, 
+                u.created_at,
+                COUNT(w.id) as total_workouts,
+                COALESCE(SUM(w.reps), 0) as total_reps,
+                COALESCE(AVG(w.avg_score), 0) as avg_score,
+                COALESCE(SUM(w.duration_seconds), 0) as total_duration
+              FROM users u
+              LEFT JOIN workouts w ON u.id = w.user_id
+              GROUP BY u.id
+              ORDER BY u.username ASC
+            `;
+            sqliteDb.all(usersQuery, [], (err, rows) => {
+              if (err) return reject(err);
+              summary.users = rows.map(r => ({
+                id: r.id,
+                username: r.username,
+                created_at: r.created_at,
+                total_workouts: r.total_workouts || 0,
+                total_reps: r.total_reps || 0,
+                avg_score: parseFloat((r.avg_score || 0).toFixed(1)),
+                total_duration: r.total_duration || 0
+              }));
+              resolve(summary);
+            });
+          });
+        });
+      } else {
+        const data = readJsonDb();
+        const usersSummary = data.users.map(u => {
+          const userWorkouts = data.workouts.filter(w => w.user_id === u.id);
+          const total_reps = userWorkouts.reduce((sum, w) => sum + w.reps, 0);
+          const total_duration = userWorkouts.reduce((sum, w) => sum + w.duration_seconds, 0);
+          const avg_score = userWorkouts.length > 0
+            ? parseFloat((userWorkouts.reduce((sum, w) => sum + w.avg_score, 0) / userWorkouts.length).toFixed(1))
+            : 0;
+          return {
+            id: u.id,
+            username: u.username,
+            created_at: u.created_at,
+            total_workouts: userWorkouts.length,
+            total_reps,
+            avg_score,
+            total_duration
+          };
+        });
+        
+        const total_users = data.users.length;
+        const total_workouts = data.workouts.length;
+        const total_reps = data.workouts.reduce((sum, w) => sum + w.reps, 0);
+        const avg_score = total_workouts > 0
+          ? parseFloat((data.workouts.reduce((sum, w) => sum + w.avg_score, 0) / total_workouts).toFixed(1))
+          : 0;
+          
+        resolve({
+          total_users,
+          total_workouts,
+          total_reps,
+          avg_score,
+          users: usersSummary
+        });
+      }
+    });
   }
 };
 
