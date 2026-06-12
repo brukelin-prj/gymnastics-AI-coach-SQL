@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第一代國民健康操 AI智慧助教</title>
+    <!-- 引入復古點陣字型與 Noto Sans TC 統一中文字型 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <!-- 引入 MediaPipe Pose 必要的 CDN 腳本 -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="flicker"></div>
+
+    <div class="app-container">
+        <!-- 復古標題 -->
+        <header class="retro-header">
+            <h1 class="neon-text">第一代國民健康操 AI智慧助教</h1>
+            <p class="subtitle">民國七十年代校園回憶 • 60 BPM 懷舊慢舞版</p>
+        </header>
+
+        <!-- 復古 CRT 彩色電視機機體 -->
+        <main class="tv-cabinet">
+            <!-- 電視螢幕外邊框 -->
+            <div class="tv-screen-border">
+                <div class="tv-screen" id="main-screen">
+                    <!-- 螢幕木質拉門 (點擊拉門即為開關，取代舊主開關) -->
+                    <div class="tv-sliding-doors" id="tv-doors">
+                        <div class="tv-door left-door">
+                            <div class="door-handle left-handle"></div>
+                        </div>
+                        <div class="tv-door right-door">
+                            <div class="door-handle right-handle"></div>
+                        </div>
+                    </div>
+
+                    <!-- 登入與註冊彈窗 (CRT 風格 - 移入電視螢幕內部) -->
+                    <div id="auth-modal" class="modal-overlay">
+                        <div class="retro-modal">
+                            <div class="modal-header">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                                <h2 class="pixel-text">INSERT COIN / 使用者登入</h2>
+                            </div>
+                            <div class="modal-body">
+                                <div id="auth-username-section">
+                                    <div class="input-group">
+                                        <label class="pixel-label">使用者帳號 (USERNAME):</label>
+                                        <input type="text" id="auth-username" class="retro-input" placeholder="請輸入或選取帳號..." list="registered-usernames" autocomplete="off">
+                                        <datalist id="registered-usernames">
+                                            <!-- 動態載入本地已登錄帳號 -->
+                                        </datalist>
+                                    </div>
+                                    
+                                    <!-- 註冊補充資料 (預設隱藏，僅當輸入的新帳號不存在時顯示) -->
+                                    <div id="auth-register-fields" class="hidden">
+                                        <p class="register-tip text-yellow">此帳號尚未註冊，請填寫基本資料建立角色：</p>
+                                        <div class="input-row">
+                                            <div class="input-group small">
+                                                <label class="pixel-label">年齡 (AGE):</label>
+                                                <input type="number" id="auth-age" class="retro-input" min="5" max="100" value="25">
+                                            </div>
+                                            <div class="input-group small">
+                                                <label class="pixel-label">性別 (GENDER):</label>
+                                                <select id="auth-gender" class="retro-input">
+                                                    <option value="M">男 (M)</option>
+                                                    <option value="F">女 (F)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="input-row">
+                                            <div class="input-group small">
+                                                <label class="pixel-label">身高 (CM):</label>
+                                                <input type="number" id="auth-height" class="retro-input" min="100" max="220" value="170">
+                                            </div>
+                                            <div class="input-group small">
+                                                <label class="pixel-label">體重 (KG):</label>
+                                                <input type="number" id="auth-weight" class="retro-input" min="30" max="150" value="65">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button id="btn-auth-submit" class="retro-btn btn-primary">PRESS START (登入/開始)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 1. 動作選單畫面 (STATE_MENU) -->
+                    <div id="tv-menu-screen" class="hidden">
+                        <div class="menu-title-banner">
+                            <span class="banner-text">SELECT EXERCISE / 選擇操節</span>
+                        </div>
+                        <div class="mode-selector-container">
+                            <span class="pixel-label">訓練模式 (MODE):</span>
+                            <div class="retro-toggle-buttons">
+                                <button id="btn-mode-routine" class="retro-toggle-btn active">全套連續做 (ROUTINE)</button>
+                                <button id="btn-mode-single" class="retro-toggle-btn">單節加強練 (PRACTICE)</button>
+                            </div>
+                        </div>
+                        <div class="stage-grid">
+                            <!-- 預備動作與 8 節操動作，共 9 格 -->
+                            <div class="stage-card" data-stage="0">
+                                <div class="stage-num">00</div>
+                                <div class="stage-name">預備姿勢</div>
+                                <div class="stage-score" id="high-score-0">HI: --</div>
+                            </div>
+                            <div class="stage-card" data-stage="1">
+                                <div class="stage-num">01</div>
+                                <div class="stage-name">第一節:全深蹲</div>
+                                <div class="stage-score" id="high-score-1">HI: --</div>
+                            </div>
+                            <div class="stage-card" data-stage="2">
+                                <div class="stage-num">02</div>
+                                <div class="stage-name">第二節:半深蹲</div>
+                                <div class="stage-score" id="high-score-2">HI: --</div>
+                            </div>
+                            <div class="stage-card" data-stage="3">
+                                <div class="stage-num">03</div>
+                                <div class="stage-name">第三節:上肢伸展</div>
+                                <div class="stage-score" id="high-score-3">HI: --</div>
+                            </div>
+                            <div class="stage-card" data-stage="4">
+                                <div class="stage-num">04</div>
+                                <div class="stage-name">第四節:擴胸轉體</div>
+                                <div class="stage-score" id="high-score-4">HI: --</div>
+                            </div>
+                            <div class="stage-card" data-stage="5">
+                                <div class="stage-num">05</div>
+                                <div class="stage-name">第五節:左右彎曲</div>
+                                <div class="stage-score" id="high-score-5">HI: --</div>
+                            </div>
+                            <div class="stage-card" data-stage="6">
+                                <div class="stage-num">06</div>
+                                <div class="stage-name">第六節:前後彎體</div>
+                                <div class="stage-score" id="high-score-6">HI: --</div>
+                            </div>
+                            <div class="stage-card" data-stage="7">
+                                <div class="stage-num">07</div>
+                                <div class="stage-name">第七節:四肢協調</div>
+                                <div class="stage-score" id="high-score-7">HI: --</div>
+                            </div>
+                            <div class="stage-card" data-stage="8">
+                                <div class="stage-num">08</div>
+                                <div class="stage-name">第八節:呼吸整理</div>
+                                <div class="stage-score" id="high-score-8">HI: --</div>
+                            </div>
+                        </div>
+                        <div class="menu-hint-text">請用滑鼠或觸控點選欲加強鍛鍊的操節動作</div>
+                    </div>
+
+                    <!-- 2. 獨立鍛鍊畫面 (STATE_WORKOUT) -->
+                    <div id="tv-workout-screen" class="hidden">
+                        <!-- 轉接下一節倒數 (全套模式) -->
+                        <div id="countdown-overlay" class="countdown-overlay hidden">
+                            <div class="countdown-card">
+                                <h3 id="countdown-title">第00節完成</h3>
+                                <p class="countdown-next-lbl" id="countdown-next-label">準備下一節：第一節</p>
+                                <div class="countdown-num" id="countdown-timer">3</div>
+                            </div>
+                        </div>
+                        <!-- 返回按鈕與小節進度 -->
+                        <div class="workout-header-bar">
+                            <button id="btn-back-to-menu" class="retro-back-btn">◀ RETURN (返回選單)</button>
+                            <span class="beat-progress-text" id="workout-beat-progress">BEATS: 0/16</span>
+                        </div>
+
+                        <!-- LED 計分板與資訊欄 -->
+                        <div class="led-scoreboard">
+                            <div class="led-item text-green" title="當前動作在整套操中進行的小節進度 (共8節)">
+                                <div class="led-label">STAGE (小節)</div>
+                                <div class="led-val" id="led-stage">0/8</div>
+                            </div>
+                            <div class="led-item text-cyan" title="當前動作的官方中文名稱">
+                                <div class="led-label">EXERCISE (當前動作)</div>
+                                <div class="led-val" id="led-action-name">預備姿勢</div>
+                            </div>
+                            <div class="led-item text-yellow" title="即時姿態與 AI 標準動作的角度契合度，60%以上為及格，低於60%顯示紅色">
+                                <div class="led-label">MATCH % (精準度)</div>
+                                <div class="led-val" id="led-match-pct">0%</div>
+                            </div>
+                            <div class="led-item text-pink" title="做操精準度越高累加越快的分數">
+                                <div class="led-label">SCORE (累計得分)</div>
+                                <div class="led-val" id="led-score">000000</div>
+                            </div>
+                            <div class="led-item text-orange" title="建議使用者面向鏡頭的方向 (正面或側面)">
+                                <div class="led-label">CAMERA (鏡頭視角)</div>
+                                <div class="led-val" id="led-cam-dir">正面</div>
+                            </div>
+                        </div>
+
+                        <!-- 雙畫面顯示 (Split Screen) -->
+                        <div class="screen-layout">
+                            <!-- 左側：玩家影像 & 骨架疊加 -->
+                            <div class="screen-pane pane-player">
+                                <video id="webcam" class="hidden" autoplay playsinline></video>
+                                <canvas id="canvas-player"></canvas>
+                                <div class="pane-label label-neon-green">PLAYER SCREEN</div>
+                                
+                                <!-- 指引文字與警告訊息 -->
+                                <div id="pose-warning" class="pose-warning-overlay hidden">
+                                    請轉為側面！
+                                </div>
+                            </div>
+
+                            <!-- 右側：AI 數位教練 (Standard Pose Animation) -->
+                            <div class="screen-pane pane-coach">
+                                <canvas id="canvas-coach"></canvas>
+                                <div class="pane-label label-neon-pink">AI COACH</div>
+                            </div>
+                        </div>
+
+                        <!-- 匹配度進度條 -->
+                        <div class="match-bar-container">
+                            <div class="match-bar-fill" id="match-bar"></div>
+                        </div>
+
+                        <!-- 即時引導與回饋面板 -->
+                        <div class="coach-feedback-box">
+                            <div class="feedback-icon" id="feedback-smiley">😐</div>
+                            <div class="feedback-text" id="feedback-text">動作加強中... 請面向鏡頭！</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 電視右側木紋控制面板 -->
+            <div class="tv-control-panel">
+                <!-- 旋鈕 -->
+                <div class="knob-group">
+                    <div class="control-knob-container">
+                        <div class="knob-label">CH (選台)</div>
+                        <div class="control-knob" id="knob-channel">
+                            <div class="knob-pointer"></div>
+                        </div>
+                    </div>
+                    <div class="control-knob-container">
+                        <div class="knob-label">VOL (音量)</div>
+                        <div class="control-knob" id="knob-volume">
+                            <div class="knob-pointer"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 喇叭柵格 -->
+                <div class="speaker-grill">
+                    <div class="grill-line"></div>
+                    <div class="grill-line"></div>
+                    <div class="grill-line"></div>
+                    <div class="grill-line"></div>
+                    <div class="grill-line"></div>
+                    <div class="grill-line"></div>
+                    <div class="grill-line"></div>
+                    <div class="grill-line"></div>
+                </div>
+
+                <!-- 電視狀態燈 (拉門拉開即亮起) -->
+                <div class="power-group">
+                    <div class="power-indicator" id="power-led"></div>
+                    <div class="power-label">POWER</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 輔助面板：歷史紀錄與自適應閾值 -->
+        <section class="info-panels">
+            <div class="info-card">
+                <h3 class="pixel-text text-yellow">個人歷史紀錄 (STATS)</h3>
+                <div class="stats-table-wrapper">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>動作名稱</th>
+                                <th>平均分數</th>
+                                <th>訓練次數</th>
+                                <th>累計秒數</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stats-body">
+                            <tr>
+                                <td colspan="4" class="text-center">請先登入帳號以載入歷史紀錄</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3 class="pixel-text text-green">AI 自適應狀態 (ADAPTIVE AI)</h3>
+                <div class="threshold-info">
+                    <p>當前特徵群組：<span id="ai-group" class="text-cyan">未載入</span></p>
+                    <div class="threshold-grid">
+                        <div class="t-item" title="判定深蹲是否達標的膝蓋角度最大容許誤差。度數越小判定越嚴格。">
+                            <span class="t-lbl">深蹲角度容差 ℹ️</span>
+                            <span id="t-val-squat" class="t-val">--</span>
+                            <span class="t-desc">膝蓋夾角判定容許誤差</span>
+                        </div>
+                        <div class="t-item" title="判定手臂是否伸直的雙肘/肩膀角度最大容許誤差。度數越小要求越精確。">
+                            <span class="t-lbl">手臂伸直容差 ℹ️</span>
+                            <span id="t-val-arm" class="t-val">--</span>
+                            <span class="t-desc">手肘關節直度容許誤差</span>
+                        </div>
+                        <div class="t-item" title="判定擴胸與扭腰轉體是否到位的身體角度最大容許誤差。">
+                            <span class="t-lbl">轉體角度容差 ℹ️</span>
+                            <span id="t-val-twist" class="t-val">--</span>
+                            <span class="t-desc">軀幹旋轉幅度容許誤差</span>
+                        </div>
+                    </div>
+                    <p class="t-hint">* <b>自適應 AI 原理：</b> 系統會自動根據您的年齡提供適當的核心角度容差。當您完成每一小節體操後，AI 將在後台自動計算並動態微調上述參數，使判定門檻更適應您的個人體能與動作幅度。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 頁尾宣告 -->
+        <footer class="retro-footer">
+            <p>© 2026 Antigravity PAIR. Designed for Retro Gymnastics Coach. Powered by MediaPipe Client Inference.</p>
+        </footer>
+    </div>
+
+    <!-- 載入音樂合成器與核心邏輯 -->
+    <script src="synth.js?v=1.0.2"></script>
+    <script src="app.js?v=1.0.2"></script>
+</body>
+</html>
