@@ -693,7 +693,7 @@ select.retro-input {
 /* --- 輔助統計面板 (Info Panels) --- */
 .info-panels {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 20px;
     margin-top: 10px;
 }
@@ -710,6 +710,40 @@ select.retro-input {
     margin-bottom: 15px;
     border-bottom: 2px solid #2e243d;
     padding-bottom: 8px;
+}
+
+.guide-content {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #cbd5e1;
+}
+
+.guide-subtitle {
+    font-size: 1rem;
+    color: var(--neon-pink);
+    text-shadow: 0 0 5px rgba(236, 72, 153, 0.4);
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
+.guide-text {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid #2e243d;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    color: #e2e8f0;
+}
+
+.guide-list {
+    padding-left: 20px;
+    color: #94a3b8;
+}
+
+.guide-list li {
+    margin-bottom: 4px;
+    position: relative;
+    list-style-type: square;
 }
 
 /* 統計表格 */

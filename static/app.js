@@ -32,15 +32,95 @@ let configThresholds = {
 
 // 8式動作名稱與指引
 const STAGES = [
-    { name: "預備動作", camera: "正面", desc: "兩手插腰，雙腳併攏，跟隨音樂預備起！" },
-    { name: "第一節：下肢全深蹲", camera: "側面", desc: "背部挺直，進行全蹲（膝關節彎曲角度需小於 100 度）" },
-    { name: "第二節：下肢半深蹲", camera: "側面", desc: "膝蓋微彎進行半深蹲（膝關節夾角介於 110-140 度）" },
-    { name: "第三節：上肢向上伸展", camera: "正面", desc: "雙手向上高舉過頭，伸直手肘" },
-    { name: "第四節：擴胸轉體", camera: "正面", desc: "雙手前平舉 -> 一手搭對肩、另一臂水平向後拉轉體" },
-    { name: "第五節：體側左右彎曲", camera: "正面", desc: "雙手高舉，身體隨節奏交替往左、右側彎" },
-    { name: "第六節：前後彎體", camera: "側面", desc: "前彎下探觸地 -> 隨後雙手插腰身體微幅後仰" },
-    { name: "第七節：四肢協調伸展", camera: "正面", desc: "雙腳跳開/開立，雙手向兩側平展或向上揚起" },
-    { name: "第八節：呼吸整理運動", camera: "正面", desc: "配合呼吸，雙手慢速上下平舉揮動" }
+    { 
+        name: "預備動作", 
+        camera: "正面", 
+        desc: "原地踏步，雙手握拳，屈肘隨節奏自然擺動，維持身體直立，跟隨 60 BPM 節拍預備起！",
+        criteria: [
+            "雙手握拳，屈肘自然擺動",
+            "原地踏步，維持 60 BPM 節奏"
+        ]
+    },
+    { 
+        name: "第一節：下肢全深蹲", 
+        camera: "側面", 
+        desc: "請側身站立。雙腳與肩同寬，手向前平舉，臀部向後坐深蹲。膝蓋彎曲接近 90 度，重心在後腳跟，避免膝蓋過度前傾。",
+        criteria: [
+            "下蹲時膝蓋夾角需小於 100°",
+            "雙手需向前平舉 (手肘夾角 > 150°)",
+            "重心偏移小於 30px (臀部與腳踝水平對位)"
+        ]
+    },
+    { 
+        name: "第二節：下肢半深蹲", 
+        camera: "側面", 
+        desc: "請正面站立。雙腳張開比肩略寬，雙手插腰，膝蓋微彎下蹲，大腿與小腿夾角約 120-140 度。保持身體直立，骨盆不要傾斜。",
+        criteria: [
+            "正面站立 (肩寬 X 差距大於寬度 15%)",
+            "膝蓋微彎 (夾角在 110° - 140° 之間)",
+            "雙手插腰 (手腕接近臀部高度)"
+        ]
+    },
+    { 
+        name: "第三節：上肢向上伸展", 
+        camera: "正面", 
+        desc: "請正面站立。雙手從身體兩側向上伸直高舉過頭，掌心相對。手臂貼近耳朵，保持身體中軸直立，雙腿伸直不彎曲。",
+        criteria: [
+            "雙手腕需高於肩膀 (Wrist Y < Shoulder Y)",
+            "手臂需伸直 (手肘夾角 > 155°)",
+            "身體中軸直立 (兩肩與兩髖維持水平)"
+        ]
+    },
+    { 
+        name: "第四節：擴胸轉體", 
+        camera: "正面", 
+        desc: "請正面站立。雙手插腰或平舉，以腰部為軸心進行左右扭轉。骨盆保持朝前穩定，利用胸腔與肩膀的旋轉帶動動作。",
+        criteria: [
+            "旋轉幅度需達標 (肩寬/臀寬比例 < 0.70)",
+            "骨盆維持水平穩定，避免隨之大晃動",
+            "膝蓋保持微彎但不左右搖擺"
+        ]
+    },
+    { 
+        name: "第五節：體側左右彎曲", 
+        camera: "正面", 
+        desc: "請正面站立。單手高舉過頭，另一手插腰，身體朝著插腰的一側側彎。側邊肌肉伸展，骨盆維持中軸不左右滑動。",
+        criteria: [
+            "身體側彎角度需大於 22°",
+            "上舉之手臂手腕高於肩膀且高舉過頭",
+            "骨盆左右偏移 (Hip Shift) 小於 0.08"
+        ]
+    },
+    { 
+        name: "第六節：前後彎體", 
+        camera: "側面", 
+        desc: "請正面站立。雙手自然下垂，上半身向前彎曲，臀部向後，雙手盡量往下摸到腳趾或地板，雙膝儘量保持伸直不彎曲。",
+        criteria: [
+            "上半身向前下彎 (髖關節角度 < 120°)",
+            "手腕低於臀部高度 (Wrist Y > Hip Y + 0.15)",
+            "雙膝伸直 (膝蓋夾角 > 150°)"
+        ]
+    },
+    { 
+        name: "第七節：四肢協調伸展", 
+        camera: "正面", 
+        desc: "請正面站立。雙腳向兩側跨開（寬於臀部的 1.35 倍），雙手向兩側斜上方張開呈大字形。全身大張伸展，四肢關節伸直。",
+        criteria: [
+            "雙腳大張 (踝距 > 1.35 * 臀寬)",
+            "雙手朝兩側斜上張開 (手腕高於肩，兩腕寬度大)",
+            "肘關節與膝關節完全伸直"
+        ]
+    },
+    { 
+        name: "第八節：呼吸整理運動", 
+        camera: "正面", 
+        desc: "請正面站立。配合節奏，吸氣時雙手由下往上緩慢抬起，胸腔擴張；吐氣時雙手緩慢放下，全身放鬆，調節呼吸至平穩。",
+        criteria: [
+            "吸氣：雙手腕緩慢上升至高於肩膀",
+            "吐氣：雙手腕緩慢下降至低於髖部",
+            "呼吸循環頻率需緩慢穩定 (一次約 3-4 秒)"
+        ]
+    }
 ];
 
 // --- 幾何工具函式 ---
@@ -655,6 +735,20 @@ function updateUIForStage() {
     ledCamDir.textContent = stage.camera;
     feedbackText.textContent = stage.desc;
     feedbackSmiley.textContent = "😃";
+
+    // 更新動作指南卡片內容
+    const guideTitle = document.getElementById("guide-exercise-title");
+    const guideDesc = document.getElementById("guide-exercise-desc");
+    const guideCriteria = document.getElementById("guide-exercise-criteria");
+    if (guideTitle && guideDesc && guideCriteria) {
+        guideTitle.textContent = `${stage.name} 指南 (GUIDE)`;
+        guideDesc.textContent = stage.desc;
+        if (stage.criteria) {
+            guideCriteria.innerHTML = stage.criteria.map(c => `<li>${c}</li>`).join("");
+        } else {
+            guideCriteria.innerHTML = "";
+        }
+    }
 }
 
 // --- 姿態偵測回調 (繪圖與比對) ---
