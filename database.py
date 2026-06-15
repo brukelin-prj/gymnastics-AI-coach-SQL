@@ -22,7 +22,8 @@ def init_db():
             age INTEGER NOT NULL,
             height REAL NOT NULL,
             weight REAL NOT NULL,
-            gender TEXT NOT NULL
+            gender TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     
@@ -39,6 +40,16 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     """)
+
+    # 欄位遷移：若 users 表無 created_at 欄位則自動新增
+    try:
+        cursor.execute("PRAGMA table_info(users)")
+        columns = [row["name"] for row in cursor.fetchall()]
+        if "created_at" not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT '2026-06-12 12:00:00'")
+            print("Successfully migrated: Added created_at column to users table.")
+    except Exception as e:
+        print(f"Error during migration: {e}")
     
     # 建立 AI 自適應動作閥值表 (由後端分析器動態更新)
     cursor.execute("""

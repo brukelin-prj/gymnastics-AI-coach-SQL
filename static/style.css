@@ -104,6 +104,24 @@ body {
     margin-top: 5px;
 }
 
+.admin-link {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #888;
+    text-decoration: none;
+    border: 1px dashed #444;
+    padding: 3px 10px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+.admin-link:hover {
+    color: var(--neon-yellow);
+    border-color: var(--neon-yellow);
+    text-shadow: 0 0 5px var(--neon-yellow);
+    box-shadow: 0 0 5px rgba(255, 234, 0, 0.3);
+}
+
 /* --- 復古彩色電視機 (TV Cabinet) --- */
 .tv-cabinet {
     background: linear-gradient(135deg, var(--wood-color) 0%, var(--wood-dark) 100%);

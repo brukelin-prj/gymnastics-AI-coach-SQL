@@ -1,7 +1,10 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
+import secrets
 import database
 import analyzer
 import os
@@ -174,6 +177,121 @@ def get_user_stats(user_id: int):
         } for r in rows],
         "recent": [{"score": r["match_score"], "date": r["created_at"]} for r in recent_logs]
     }
+
+# --- 後台管理 API 與 HTTP Basic 認證 ---
+security = HTTPBasic()
+
+def auth_admin(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = secrets.compare_digest(credentials.username, "admin")
+    correct_password = secrets.compare_digest(credentials.password, "admin888")
+    if not (correct_username and correct_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Basic realm=\"Admin Access\""},
+        )
+    return credentials.username
+
+@app.get("/admin.html")
+def get_admin_html(username: str = Depends(auth_admin)):
+    """受保護的後台管理 HTML 路由"""
+    static_dir = os.path.join(os.path.dirname(__file__), "static")
+    return FileResponse(os.path.join(static_dir, "admin.html"))
+
+@app.get("/api/admin/summary")
+def get_admin_summary(username: str = Depends(auth_admin)):
+    """獲取後台管理總覽統計數據與會員名單"""
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    
+    # 1. 總會員數
+    cursor.execute("SELECT COUNT(*) FROM users")
+    total_users = cursor.fetchone()[0] or 0
+    
+    # 2. 總運動小節數與平均得分
+    cursor.execute("SELECT COUNT(*), AVG(match_score) FROM workout_logs")
+    log_row = cursor.fetchone()
+    total_workouts = log_row[0] or 0
+    total_reps = total_workouts  # 以完成小節數作為次數
+    avg_score = round(log_row[1] or 0, 1)
+    
+    # 3. 獲取使用者名單及其統計數據
+    users_query = """
+        SELECT 
+            u.id, 
+            u.username, 
+            u.created_at,
+            COUNT(w.id) as total_workouts,
+            COALESCE(SUM(w.duration_sec), 0) as total_duration,
+            COALESCE(AVG(w.match_score), 0) as avg_score
+        FROM users u
+        LEFT JOIN workout_logs w ON u.id = w.user_id
+        GROUP BY u.id
+        ORDER BY u.username ASC
+    """
+    cursor.execute(users_query)
+    rows = cursor.fetchall()
+    conn.close()
+    
+    users = []
+    for r in rows:
+        users.append({
+            "id": r["id"],
+            "username": r["username"],
+            "created_at": r["created_at"],
+            "total_workouts": r["total_workouts"],
+            "total_reps": r["total_workouts"],
+            "avg_score": round(r["avg_score"], 1),
+            "total_duration": r["total_duration"]
+        })
+        
+    return {
+        "total_users": total_users,
+        "total_workouts": total_workouts,
+        "total_reps": total_reps,
+        "avg_score": avg_score,
+        "users": users
+    }
+
+@app.get("/api/workouts")
+def get_workouts(user_id: int, username: str = Depends(auth_admin)):
+    """獲取特定會員的詳細運動歷史紀錄"""
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, movement_name as mode, match_score as avg_score, duration_sec, created_at
+        FROM workout_logs
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+    """, (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    
+    logs = []
+    for r in rows:
+        logs.append({
+            "id": r["id"],
+            "created_at": r["created_at"],
+            "mode": r["mode"],
+            "reps": 1,
+            "avg_score": round(r["avg_score"], 1)
+        })
+    return logs
+
+@app.delete("/api/workouts/{log_id}")
+def delete_workout(log_id: int, username: str = Depends(auth_admin)):
+    """後台管理刪除特定運動紀錄"""
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM workout_logs WHERE id = ?", (log_id,))
+    conn.commit()
+    changes = cursor.rowcount
+    conn.close()
+    
+    if changes > 0:
+        return {"status": "success", "message": "日誌已刪除"}
+    else:
+        raise HTTPException(status_code=404, detail="找不到該日誌")
 
 # 靜態網頁託管 (若 /static 目錄已建立，則將前端發布在此)
 static_dir = os.path.join(os.path.dirname(__file__), "static")
