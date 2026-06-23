@@ -17,6 +17,14 @@
     /* Fonts */
     --font-pixel: 'Press Start 2P', 'VT323', monospace;
     --font-retro: 'VT323', monospace;
+
+    /* Vintage Paper/Ink Theme Colors for SVGs */
+    --vintage-paper: #f4edd9;
+    --vintage-ink: #19385c;
+    --vintage-red: #a82a25;
+    --vintage-yellow: #d3962b;
+    --vintage-green: #2b6b3e;
+    --font-serif: 'Noto Serif TC', 'Noto Serif', serif;
 }
 
 * {

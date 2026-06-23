@@ -162,6 +162,7 @@ const feedbackText = document.getElementById("feedback-text");
 const feedbackSmiley = document.getElementById("feedback-smiley");
 const matchBar = document.getElementById("match-bar");
 const poseWarning = document.getElementById("pose-warning");
+const poseSvg = document.getElementById("pose-svg");
 
 // 畫布與影像
 const videoElement = document.getElementById("webcam");
@@ -748,6 +749,210 @@ function updateUIForStage() {
         } else {
             guideCriteria.innerHTML = "";
         }
+    }
+
+    // 更新示範人偶 SVG (米羅-包浩斯混合風格)
+    updatePoseSvg(currentStageIndex);
+}
+
+// ================= SVG 示範人偶動態更新 =================
+function updatePoseSvg(idx) {
+    let svgContent = "";
+    const colors = `stroke="var(--vintage-ink)" stroke-width="4.5" stroke-linecap="round" fill="none"`;
+    const guides = `stroke="var(--vintage-red)" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2, 2" fill="none"`;
+    const pointerText = `fill="var(--vintage-red)" font-size="6.5" font-weight="800" font-family="var(--font-serif)"`;
+    
+    if (idx === 0) {
+        // 0. 預備動作 (暖身踏步)
+        svgContent = `
+            <!-- 背景色塊 (祖母綠與黃色) -->
+            <path d="M 45,53 L 60,65 L 50,80 Z" fill="#2b6b3e" opacity="0.25" />
+            <circle cx="50" cy="45" r="14" fill="var(--vintage-yellow)" opacity="0.2" />
+            
+            <!-- 人體線條 (貝茲流線) -->
+            <circle cx="50" cy="22" r="6.5" fill="var(--vintage-red)" />
+            <path d="M 50,29 Q 50,42 50,53" ${colors} />
+            <path d="M 50,53 Q 32,60 38,82" ${colors} />
+            <path d="M 50,53 Q 65,65 58,82" ${colors} />
+            <path d="M 44,32 Q 32,40 40,48" ${colors} />
+            <path d="M 56,32 Q 68,36 60,46" ${colors} />
+            
+            <!-- 關節星星 -->
+            <path d="M 36,58 L 40,62 M 40,58 L 36,62" stroke="var(--vintage-yellow)" stroke-width="2" />
+            
+            <!-- 指示線與標籤 -->
+            <path d="M 50,40 L 70,45" ${guides} />
+            <circle cx="50" cy="40" r="2.5" fill="var(--vintage-red)" />
+            <text x="72" y="47" ${pointerText}>暖身協調</text>
+        `;
+    } else if (idx === 1) {
+        // 1. 下肢全深蹲 (主練臀腿)
+        svgContent = `
+            <!-- 米羅風裝飾與背景幾何色塊 -->
+            <path d="M 32,53 Q 63,60 46,80 Z" fill="#2b6b3e" opacity="0.3" /> <!-- 臀腿綠色色塊 -->
+            <circle cx="30" cy="40" r="14" fill="var(--vintage-yellow)" opacity="0.25" />
+            
+            <!-- 人體線條 (貝茲流線) -->
+            <circle cx="34" cy="22" r="6.5" fill="var(--vintage-red)" />
+            <path d="M 34,29 Q 28,45 35,55" ${colors} />
+            <path d="M 35,55 Q 55,60 45,80" ${colors} />
+            <path d="M 34,32 Q 55,32 75,32" ${colors} />
+            
+            <!-- 關節星星標記 -->
+            <path d="M 52,58 L 56,62 M 56,58 L 52,62" stroke="var(--vintage-yellow)" stroke-width="2.5" />
+            
+            <!-- 訓練部位指示線與標籤 -->
+            <path d="M 50,65 L 68,75" ${guides} />
+            <circle cx="50" cy="65" r="2.5" fill="var(--vintage-red)" />
+            <text x="70" y="77" ${pointerText}>臀腿肌群</text>
+        `;
+    } else if (idx === 2) {
+        // 2. 下肢半深蹲 (主練股四頭肌)
+        svgContent = `
+            <!-- 背景色塊 -->
+            <path d="M 35,66 L 50,52 L 65,66 Z" fill="var(--vintage-yellow)" opacity="0.3" />
+            <circle cx="50" cy="45" r="12" fill="#2b6b3e" opacity="0.2" />
+            
+            <!-- 人體線條 -->
+            <circle cx="50" cy="22" r="6.5" fill="var(--vintage-red)" />
+            <path d="M 50,29 Q 50,42 50,52" ${colors} />
+            <path d="M 50,52 L 35,66 L 43,85" ${colors} />
+            <path d="M 50,52 L 65,66 L 57,85" ${colors} />
+            <path d="M 45,34 L 34,42 L 46,50" ${colors} />
+            <path d="M 55,34 L 66,42 L 54,50" ${colors} />
+            
+            <!-- 指示線與標籤 -->
+            <path d="M 39,70 L 22,78" ${guides} />
+            <circle cx="39" cy="70" r="2.5" fill="var(--vintage-red)" />
+            <text x="2" y="80" ${pointerText}>股四頭肌</text>
+        `;
+    } else if (idx === 3) {
+        // 3. 上肢向上伸展 (主練肩背)
+        svgContent = `
+            <!-- 背景色塊 (肩背區) -->
+            <path d="M 38,30 Q 50,15 62,30 Z" fill="var(--vintage-ink)" opacity="0.2" />
+            <circle cx="50" cy="65" r="15" fill="var(--vintage-yellow)" opacity="0.2" />
+            
+            <!-- 人體線條 -->
+            <circle cx="50" cy="26" r="6.5" fill="var(--vintage-red)" />
+            <path d="M 50,33 L 50,58" ${colors} />
+            <path d="M 50,58 L 40,82" ${colors} />
+            <path d="M 50,58 L 60,82" ${colors} />
+            <path d="M 43,37 Q 38,25 35,10" ${colors} />
+            <path d="M 57,37 Q 62,25 65,10" ${colors} />
+            
+            <!-- 指示線與標籤 -->
+            <path d="M 40,30 L 22,25" ${guides} />
+            <circle cx="40" cy="30" r="2.5" fill="var(--vintage-red)" />
+            <text x="2" y="23" ${pointerText}>肩背伸展</text>
+        `;
+    } else if (idx === 4) {
+        // 4. 擴胸轉體 (主練腰腹外斜肌)
+        svgContent = `
+            <!-- 背景色塊 (腰腹區) -->
+            <path d="M 35,40 Q 50,50 65,40 Q 55,60 35,40 Z" fill="#2b6b3e" opacity="0.3" />
+            <circle cx="35" cy="30" r="10" fill="var(--vintage-yellow)" opacity="0.25" />
+            
+            <!-- 人體線條 -->
+            <circle cx="50" cy="22" r="6.5" fill="var(--vintage-red)" />
+            <path d="M 50,29 Q 47,44 50,58" ${colors} />
+            <path d="M 50,58 L 42,83" ${colors} />
+            <path d="M 50,58 L 58,83" ${colors} />
+            <path d="M 45,33 Q 28,30 38,40" ${colors} />
+            <path d="M 55,33 Q 75,33 72,42" ${colors} />
+            
+            <!-- 指示線與標籤 -->
+            <path d="M 48,46 L 70,52" ${guides} />
+            <circle cx="48" cy="46" r="2.5" fill="var(--vintage-red)" />
+            <text x="72" y="54" ${pointerText}>腰腹斜肌</text>
+        `;
+    } else if (idx === 5) {
+        // 5. 體側左右彎曲 (主練體側肌群)
+        svgContent = `
+            <!-- 背景色塊 (體側拉展區) -->
+            <path d="M 40,25 Q 60,35 55,55 Z" fill="var(--vintage-yellow)" opacity="0.3" />
+            <circle cx="32" cy="70" r="14" fill="var(--vintage-ink)" opacity="0.15" />
+            
+            <!-- 人體線條 -->
+            <circle cx="42" cy="22" r="6.5" fill="var(--vintage-red)" />
+            <path d="M 42,29 Q 50,44 48,58" ${colors} />
+            <path d="M 48,58 L 40,83" ${colors} />
+            <path d="M 48,58 L 56,83" ${colors} />
+            <path d="M 38,32 Q 25,14 45,10" ${colors} />
+            <path d="M 46,34 L 54,42 L 48,48" ${colors} />
+            
+            <!-- 指示線與標籤 -->
+            <path d="M 52,38 L 70,30" ${guides} />
+            <circle cx="52" cy="38" r="2.5" fill="var(--vintage-red)" />
+            <text x="72" y="28" ${pointerText}>體側肌群</text>
+        `;
+    } else if (idx === 6) {
+        // 6. 前後彎體 (主練下背與腿後肌)
+        svgContent = `
+            <!-- 背景色塊 (下背/大腿後側) -->
+            <path d="M 28,52 Q 45,42 55,46 Z" fill="#2b6b3e" opacity="0.3" />
+            <circle cx="52" cy="70" r="15" fill="var(--vintage-yellow)" opacity="0.25" />
+            
+            <!-- 人體線條 -->
+            <circle cx="32" cy="60" r="6.5" fill="var(--vintage-red)" />
+            <path d="M 32,53 Q 50,45 52,48" ${colors} />
+            <path d="M 52,48 L 52,82" ${colors} />
+            <path d="M 52,48 L 60,82" ${colors} />
+            <path d="M 38,50 L 28,76" ${colors} />
+            
+            <!-- 指示線與標籤 -->
+            <path d="M 48,46 L 70,38" ${guides} />
+            <circle cx="48" cy="46" r="2.5" fill="var(--vintage-red)" />
+            <text x="72" y="36" ${pointerText}>下背臀腿</text>
+        `;
+    } else if (idx === 7) {
+        // 7. 四肢協調伸展 (主練全身協調)
+        svgContent = `
+            <!-- 背景色塊 (全身大張放射) -->
+            <path d="M 20,20 Q 50,40 80,20 Q 50,60 50,82 Z" fill="var(--vintage-yellow)" opacity="0.2" />
+            <circle cx="50" cy="48" r="12" fill="#2b6b3e" opacity="0.25" />
+            
+            <!-- 人體線條 -->
+            <circle cx="50" cy="22" r="6.5" fill="var(--vintage-red)" />
+            <path d="M 50,29 L 50,52" ${colors} />
+            <path d="M 50,52 L 28,82" ${colors} />
+            <path d="M 50,52 L 72,82" ${colors} />
+            <path d="M 44,32 L 20,18" ${colors} />
+            <path d="M 56,32 L 80,18" ${colors} />
+            
+            <!-- 關節星星 -->
+            <path d="M 22,22 L 26,26 M 26,22 L 22,26" stroke="var(--vintage-red)" stroke-width="2" />
+            <path d="M 74,22 L 78,26 M 78,22 L 74,26" stroke="var(--vintage-red)" stroke-width="2" />
+            
+            <!-- 指示線與標籤 -->
+            <path d="M 50,45 L 70,55" ${guides} />
+            <circle cx="50" cy="45" r="2.5" fill="var(--vintage-red)" />
+            <text x="72" y="57" ${pointerText}>全身協調</text>
+        `;
+    } else if (idx === 8) {
+        // 8. 呼吸整理運動 (主練心肺調節)
+        svgContent = `
+            <!-- 背景色塊 (胸腔擴張藍色大氣球) -->
+            <circle cx="50" cy="42" r="16" fill="var(--vintage-ink)" opacity="0.2" />
+            <path d="M 35,32 Q 50,20 65,32 Z" fill="var(--vintage-yellow)" opacity="0.25" />
+            
+            <!-- 人體線條 -->
+            <circle cx="50" cy="22" r="6.5" fill="var(--vintage-red)" />
+            <path d="M 50,29 L 50,55" ${colors} />
+            <path d="M 50,55 L 44,82" ${colors} />
+            <path d="M 50,55 L 56,82" ${colors} />
+            <path d="M 44,32 Q 26,38 42,50" ${colors} />
+            <path d="M 56,32 Q 74,38 58,50" ${colors} />
+            
+            <!-- 指示線與標籤 -->
+            <path d="M 50,38 L 70,30" ${guides} />
+            <circle cx="50" cy="38" r="2.5" fill="var(--vintage-red)" />
+            <text x="72" y="28" ${pointerText}>心肺調節</text>
+        `;
+    }
+
+    if (poseSvg) {
+        poseSvg.innerHTML = svgContent;
     }
 }
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>第一代國民健康操 AI智慧教練</title>
     <!-- 引入復古點陣字型與 Noto Sans TC 統一中文字型 -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@500;800&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <!-- 引入 MediaPipe Pose 必要的 CDN 腳本 -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
@@ -317,16 +317,25 @@
                 </div>
             </div>
 
-            <div class="info-card">
-                <h3 class="pixel-text text-pink" id="guide-exercise-title">動作指南 (GUIDE)</h3>
-                <div class="guide-content">
-                    <h4 class="guide-subtitle">【動作重點】</h4>
-                    <p id="guide-exercise-desc" class="guide-text">踏步運動：雙腳踏步，保持身體筆直、節奏平穩。</p>
-                    <h4 class="guide-subtitle">【檢測標準】</h4>
-                    <ul id="guide-exercise-criteria" class="guide-list">
-                        <li>雙手握拳，屈肘自然擺動。</li>
-                        <li>原地踏步，維持 60 BPM 節拍。</li>
-                    </ul>
+            <div class="info-card" style="display: flex; gap: 15px; align-items: center;">
+                <div style="flex: 1;">
+                    <h3 class="pixel-text text-pink" id="guide-exercise-title">動作指南 (GUIDE)</h3>
+                    <div class="guide-content">
+                        <h4 class="guide-subtitle">【動作重點】</h4>
+                        <p id="guide-exercise-desc" class="guide-text">踏步運動：雙腳踏步，保持身體筆直、節奏平穩。</p>
+                        <h4 class="guide-subtitle">【檢測標準】</h4>
+                        <ul id="guide-exercise-criteria" class="guide-list">
+                            <li>雙手握拳，屈肘自然擺動。</li>
+                            <li>原地踏步，維持 60 BPM 節拍。</li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- 動作示範小海報 SVG -->
+                <div class="poster-illustration" style="width: 130px; height: 130px; flex-shrink: 0; background-color: #0b0f0d; border: 2.5px solid #2e243d; border-radius: 8px; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);">
+                    <div class="illustration-grid" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle, rgba(25, 56, 92, 0.05) 1px, transparent 1px); background-size: 10px 10px; pointer-events: none;"></div>
+                    <svg id="pose-svg" viewBox="0 0 100 100" width="110" height="110" style="z-index: 2;">
+                        <!-- 由 JavaScript 動態填入 -->
+                    </svg>
                 </div>
             </div>
         </section>
